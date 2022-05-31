@@ -1,28 +1,17 @@
-package main
+package server
 
 import (
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
 )
 
-func main() {
-	fmt.Println("Starting server...")
-
-	r := chi.NewRouter()
-	r.Get("/api/getExample", handleGet)
-	r.Post("/api/postExample", handlePost)
-	http.ListenAndServe(":8080", r)
-}
-
-func handleGet(w http.ResponseWriter, r *http.Request) {
+func handleGetExample(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("An example of a get request."))
 }
 
-func handlePost(w http.ResponseWriter, r *http.Request) {
+func handlePostExample(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	bodyBytes, err := io.ReadAll(r.Body)
