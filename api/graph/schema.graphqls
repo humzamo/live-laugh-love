@@ -1,0 +1,25 @@
+scalar Date
+
+type Scores {
+  live: Int!
+  laugh: Int!
+  love: Int!
+}
+
+type Record {
+  user: String!
+  date: Date!
+  scores: Scores!
+  reason: String
+}
+
+type Query {
+  recordByUser(user: String!, date: Date!): Record!
+  recordsByUser(user: String): [Record!]!
+}
+
+type Mutation {
+  updateRecord(user: String!, date: Date!): String
+  deleteRecord(user: String!, date: Date!): String
+  deleteRecords(user: String!): String
+}
