@@ -14,11 +14,13 @@ type Record {
 }
 
 type Query {
+  exampleGet: String!
   recordByUser(user: String!, date: Date!): Record!
   recordsByUser(user: String): [Record!]!
 }
 
 type Mutation {
+  examplePost(message: String): String
   updateRecord(user: String!, date: Date!): String
   deleteRecord(user: String!, date: Date!): String
   deleteRecords(user: String!): String

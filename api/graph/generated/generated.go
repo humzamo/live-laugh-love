@@ -49,10 +49,12 @@ type ComplexityRoot struct {
 	Mutation struct {
 		DeleteRecord  func(childComplexity int, user string, date civil.Date) int
 		DeleteRecords func(childComplexity int, user string) int
+		ExamplePost   func(childComplexity int, message *string) int
 		UpdateRecord  func(childComplexity int, user string, date civil.Date) int
 	}
 
 	Query struct {
+		ExampleGet    func(childComplexity int) int
 		RecordByUser  func(childComplexity int, user string, date civil.Date) int
 		RecordsByUser func(childComplexity int, user *string) int
 	}
@@ -72,11 +74,13 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	ExamplePost(ctx context.Context, message *string) (*string, error)
 	UpdateRecord(ctx context.Context, user string, date civil.Date) (*string, error)
 	DeleteRecord(ctx context.Context, user string, date civil.Date) (*string, error)
 	DeleteRecords(ctx context.Context, user string) (*string, error)
 }
 type QueryResolver interface {
+	ExampleGet(ctx context.Context) (string, error)
 	RecordByUser(ctx context.Context, user string, date civil.Date) (*model.Record, error)
 	RecordsByUser(ctx context.Context, user *string) ([]*model.Record, error)
 }
@@ -120,6 +124,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteRecords(childComplexity, args["user"].(string)), true
 
+	case "Mutation.examplePost":
+		if e.complexity.Mutation.ExamplePost == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_examplePost_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ExamplePost(childComplexity, args["message"].(*string)), true
+
 	case "Mutation.updateRecord":
 		if e.complexity.Mutation.UpdateRecord == nil {
 			break
@@ -131,6 +147,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateRecord(childComplexity, args["user"].(string), args["date"].(civil.Date)), true
+
+	case "Query.exampleGet":
+		if e.complexity.Query.ExampleGet == nil {
+			break
+		}
+
+		return e.complexity.Query.ExampleGet(childComplexity), true
 
 	case "Query.recordByUser":
 		if e.complexity.Query.RecordByUser == nil {
@@ -288,11 +311,13 @@ type Record {
 }
 
 type Query {
+  exampleGet: String!
   recordByUser(user: String!, date: Date!): Record!
   recordsByUser(user: String): [Record!]!
 }
 
 type Mutation {
+  examplePost(message: String): String
   updateRecord(user: String!, date: Date!): String
   deleteRecord(user: String!, date: Date!): String
   deleteRecords(user: String!): String
@@ -341,6 +366,21 @@ func (ec *executionContext) field_Mutation_deleteRecords_args(ctx context.Contex
 		}
 	}
 	args["user"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_examplePost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["message"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["message"] = arg0
 	return args, nil
 }
 
@@ -459,6 +499,58 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Mutation_examplePost(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_examplePost(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ExamplePost(rctx, fc.Args["message"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_examplePost(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_examplePost_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Mutation_updateRecord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_updateRecord(ctx, field)
@@ -612,6 +704,50 @@ func (ec *executionContext) fieldContext_Mutation_deleteRecords(ctx context.Cont
 	if fc.Args, err = ec.field_Mutation_deleteRecords_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_exampleGet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_exampleGet(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ExampleGet(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_exampleGet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -2988,6 +3124,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "examplePost":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_examplePost(ctx, field)
+			})
+
 		case "updateRecord":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -3036,6 +3178,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "exampleGet":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_exampleGet(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "recordByUser":
 			field := field
 

@@ -7,11 +7,24 @@ package graph
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"cloud.google.com/go/civil"
 	"github.com/humzamo/live-laugh-love/api/graph/generated"
 	"github.com/humzamo/live-laugh-love/api/graph/model"
 )
+
+// ExamplePost is the resolver for the examplePost field.
+func (r *mutationResolver) ExamplePost(ctx context.Context, message *string) (*string, error) {
+	log.Print("Message from post request: ", *message)
+
+	response := fmt.Sprintf("You just sent: %s", *message)
+	if *message == "" {
+		response = "You didn't send anything!"
+	}
+
+	return &response, nil
+}
 
 // UpdateRecord is the resolver for the updateRecord field.
 func (r *mutationResolver) UpdateRecord(ctx context.Context, user string, date civil.Date) (*string, error) {
@@ -28,9 +41,15 @@ func (r *mutationResolver) DeleteRecords(ctx context.Context, user string) (*str
 	panic(fmt.Errorf("not implemented: DeleteRecords - deleteRecords"))
 }
 
+// ExampleGet is the resolver for the exampleGet field.
+func (r *queryResolver) ExampleGet(ctx context.Context) (string, error) {
+	return "This is an example query!", nil
+}
+
 // RecordByUser is the resolver for the recordByUser field.
 func (r *queryResolver) RecordByUser(ctx context.Context, user string, date civil.Date) (*model.Record, error) {
-	panic(fmt.Errorf("not implemented: RecordByUser - recordByUser"))
+	fmt.Println("running RecordByUser query")
+	return &model.Record{User: user, Date: date, Scores: &model.Scores{Live: 10, Laugh: 10, Love: 10}}, nil
 }
 
 // RecordsByUser is the resolver for the recordsByUser field.
